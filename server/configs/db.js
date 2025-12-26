@@ -1,12 +1,22 @@
 import mongoose from "mongoose";
 
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected) return;
+
   try {
-    mongoose.connection.on('connected', ()=> console.log('Database connected'))
-    await mongoose.connect(`${process.env.MONGODB_URL}/ProConnect`)
+    const conn = await mongoose.connect(process.env.MONGODB_URL, {
+      dbName: "ProConnect",
+      autoIndex: true,
+    });
+
+    isConnected = true;
+    console.log("✅ MongoDB connected to:", conn.connection.name);
   } catch (error) {
-    console.log(error.message)
+    console.error("❌ MongoDB connection failed:", error);
+    throw error;
   }
-}
+};
 
 export default connectDB;

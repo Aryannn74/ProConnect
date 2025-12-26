@@ -1,19 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  _id: {type:String, required:true},
-  email: {type:String, required:true},
-  full_name: {type:String, required:true},
-  username: {type:String, unique:true},
-  bio: {type:String, default:'Hey there! I am using ProConnect.'},
-  profile_picture: {type:String, default:''},
-  cover_photo: {type:String, default:''},
-  location: {type:String, default:''},
-  followers: {type:String, ref:'User'},
-  following: {type:String, ref:'User'},
-  connections: {type:String, ref:'User'},
-}, {timestamps: true, minimize:false})
+const userSchema = new mongoose.Schema(
+  {
+    _id: { type: String, required: true }, // Clerk ID
+    email: { type: String, required: true, unique: true },
+    full_name: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
 
-const User = mongoose.model('User', userSchema)
+    bio: { type: String, default: "Hey there! I am using ProConnect." },
+    profile_picture: { type: String, default: "" },
+    cover_photo: { type: String, default: "" },
+    location: { type: String, default: "" },
 
-export default User;
+    followers: [{ type: String, ref: "User" }],
+    following: [{ type: String, ref: "User" }],
+    connections: [{ type: String, ref: "User" }],
+  },
+  { timestamps: true }
+);
+
+export default mongoose.models.User ||
+  mongoose.model("User", userSchema);
