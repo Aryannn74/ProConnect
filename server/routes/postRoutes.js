@@ -1,7 +1,11 @@
 import express from "express";
-import { protect } from "../middlewares/auth";
-import { addPost, getFeedPosts, likePost } from "../controllers/postController";
-import { upload } from "../configs/multer";
+import { protect } from "../middlewares/auth.js";
+import {
+  addPost,
+  getFeedPosts,
+  likePost,
+} from "../controllers/postController.js";
+import { upload } from "../configs/multer.js";
 
 const postRouter = express.Router();
 

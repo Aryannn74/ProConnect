@@ -1,4 +1,3 @@
-import { Console } from "console";
 import imagekit from "../configs/imageKit.js";
 import Connection from "../models/Connection.js";
 import User from "../models/User.js";
