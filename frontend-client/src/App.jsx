@@ -1,40 +1,39 @@
-import eact, { useEffect } from "react";
+// import react, { useEffect } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { Toaster } from "react-hot-toast";
-
-import Login from "./Pages/Login";
-import Feed from "./Pages/Feed";
-import Messages from "./Pages/Messages";
-import ChatBox from "./Pages/ChatBox";
-import Connections from "./Pages/Connections";
-import Discover from "./Pages/Discover";
-import Profile from "./Pages/Profile";
-import CreatePost from "./Pages/CreatePost";
-import Layout from "./Pages/Layout";
-import Loading from "./components/Loading";
+import Login from "./Pages/Login.jsx";
+import Feed from "./Pages/Feed.jsx";
+import Messages from "./Pages/Messages.jsx";
+import ChatBox from "./Pages/ChatBox.jsx";
+import Connections from "./Pages/Connections.jsx";
+import Discover from "./Pages/Discover.jsx";
+import Profile from "./Pages/Profile.jsx";
+import CreatePost from "./Pages/CreatePost.jsx";
+import Layout from "./Pages/Layout.jsx";
+// import Loading from "./components/Loading";
 import { useDispatch } from "react-redux";
-import { fetchUser } from "./features/user/userSlice";
+import { fetchUser } from "./features/user/userSlice.js";
+import { useEffect } from "react";
 
 const App = () => {
-  const { user, isLoaded } = useUser();
+  const { user } = useUser();
   const { getToken } = useAuth();
 
-  const dispatch = useDispatch
+  const dispatch = useDispatch;
 
   useEffect(() => {
     const fetchData = async () => {
-    if (user) {
-      const token = await getToken()
-      useDispatch(fetchUser(token))
-    }
-    }
+      if (user) {
+        const token = await getToken();
+        dispatch(fetchUser(token));
+      }
+    };
 
-    fetchData()
-
+    fetchData();
   }, [user, getToken, dispatch]);
 
-  if (!isLoaded) return <Loading />;
+  // if (!isLoaded) return <Loading />;
 
   return (
     <>
