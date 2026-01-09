@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
+ import { createSlice } from "@reduxjs/toolkit";
+
 
 const initialState = {
     connections: [],
@@ -6,6 +7,7 @@ const initialState = {
     followers: [],
     following: [],
 } 
+
 
 const connectionsSlice = createSlice({
     name: 'connections',

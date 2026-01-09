@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { BadgeCheck, Heart, MessageCircle, Share2 } from "lucide-react";
 import moment from "moment";
-import { dummyUserData } from "../assets/assets";
+// import { dummyUserData } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const PostCard = ({ post }) => {
   const postWithHashtags = post.content.replace(
@@ -11,7 +12,10 @@ const PostCard = ({ post }) => {
   );
   const [likes, setLikes] = useState(post.likes_count);
   // ! delete dummy data
-  const currentUser = dummyUserData;
+  // const currentUser = dummyUserData;
+
+  //! update code
+  const currentUser = useSelector((state) => state.user.value);
 
   const handleLike = () => {
     if (likes.includes(currentUser._id)) {
@@ -21,12 +25,15 @@ const PostCard = ({ post }) => {
     }
   };
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl">
       {/* user info */}
-      <div onClick={()=> navigate('/profile/' + post.user._id)} className="inline-flex items-center gap-3 cursor-pointer">
+      <div
+        onClick={() => navigate("/profile/" + post.user._id)}
+        className="inline-flex items-center gap-3 cursor-pointer"
+      >
         <img
           src={post.user.profile_picture}
           alt=""

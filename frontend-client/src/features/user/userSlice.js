@@ -1,9 +1,17 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../api/axios.js";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../api/axios";
 import toast from "react-hot-toast";
 
+//old code
+// const initialState = {
+//   value: null,
+// };
+
+//new code
 const initialState = {
-  value: null,
+  value: {},
+  loading: false,
+  error: null,
 };
 
 export const fetchUser = createAsyncThunk("user/fetchUser", async (token) => {
@@ -33,15 +41,47 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {},
+  //! old code 
+  // extraReducers: (builder) => {
+  //   builder
+  //     .addCase(fetchUser.fulfilled, (state, action) => {
+  //       state.value = action.payload;
+  //     })
+  //     .addCase(updateUser.fulfilled, (state, action) => {
+  //       state.value = action.payload;
+  //     });
+  // },
+
+  //!new code
   extraReducers: (builder) => {
-    builder
-      .addCase(fetchUser.fulfilled, (state, action) => {
-        state.value = action.payload;
-      })
-      .addCase(updateUser.fulfilled, (state, action) => {
-        state.value = action.payload;
-      });
-  },
+  builder
+    .addCase(fetchUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(fetchUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.value = action.payload || {};
+    })
+    .addCase(fetchUser.rejected, (state) => {
+      state.loading = false;
+      state.error = "Failed to fetch user";
+    })
+
+    .addCase(updateUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(updateUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.value = action.payload || {};
+    })
+    .addCase(updateUser.rejected, (state) => {
+      state.loading = false;
+      state.error = "Failed to update user";
+    });
+}
+
 });
 
 export default userSlice.reducer;

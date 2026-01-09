@@ -8,15 +8,38 @@ import Connections from "./Pages/Connections.jsx";
 import Discover from "./Pages/Discover.jsx";
 import Profile from "./Pages/Profile.jsx";
 import CreatePost from "./Pages/CreatePost.jsx";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import Layout from "./Pages/Layout.jsx";
 import { Toaster } from "react-hot-toast";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "./features/user/userSlice.js";
 
 const App = () => {
+  //!old code 
   const { user } = useUser();
+
+  //!new code 
+//   const { user, isLoaded } = useUser();
+// if (!isLoaded) return null;
+
+  const { getToken } = useAuth();
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (user) {
+        const token = await getToken();
+        dispatch(fetchUser(token));
+      }
+    };
+    fetchData();
+  }, [user, getToken, dispatch]);
+
   return (
     <>
-    <Toaster />
+      <Toaster />
       <Routes>
         <Route path="/" element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />
@@ -35,11 +58,7 @@ const App = () => {
 
 export default App;
 
-// import { useAuth } from "@clerk/clerk-react";
 // import Loading from "./components/Loading";
-// import { useDispatch } from "react-redux";
-// import { fetchUser } from "./features/user/userSlice.js";
-// import { useEffect } from "react";
 
 // const App = () => {
 //   const { user } = useUser();
