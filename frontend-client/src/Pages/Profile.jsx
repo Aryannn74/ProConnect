@@ -1,31 +1,54 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { dummyPostsData, dummyUserData } from "../assets/assets";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Loading from "../components/Loading.jsx";
 import UserProfileInfo from "../components/UserProfileInfo.jsx";
 import PostCard from "../components/PostCard.jsx";
-import moment from "moment";
 import ProfileModal from "../components/ProfileModal.jsx";
+import api from "../api/axios";
+import { useAuth } from "@clerk/clerk-react";
 
 const Profile = () => {
   const { profileId } = useParams();
+  const { value: loggedInUser } = useSelector((state) => state.user);
+  const { getToken } = useAuth();
 
-  const [user, setUser] = useState(null);
+  const [profileUser, setProfileUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [activeTab, setActiveTab] = useState("posts");
   const [showEdit, setShowEdit] = useState(false);
-
-  const fetchUser = async () => {
-    // later replace with Firebase API
-    setUser(dummyUserData);
-    setPosts(dummyPostsData);
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUser();
-  }, []);
+    const fetchProfile = async () => {
+      try {
+        const token = await getToken();
 
-  if (!user) return <Loading />;
+        const { data } = await api.post(
+          "/api/user/profiles",
+          { profileId: profileId || loggedInUser?._id },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (data.success) {
+          setProfileUser(data.profile);
+          setPosts(data.posts);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loggedInUser) {
+      fetchProfile();
+    }
+  }, [profileId, loggedInUser]);
+
+  if (loading || !profileUser) return <Loading />;
 
   return (
     <div className="relative h-full overflow-y-scroll bg-gray-50 p-6">
@@ -34,11 +57,11 @@ const Profile = () => {
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow overflow-hidden">
 
-          {/* Cover Photo */}
-          <div className="h-40 md:h-56 bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200">
-            {user.cover_photo && (
+          {/* Cover */}
+          <div className="h-40 md:h-56 bg-gray-200">
+            {profileUser.cover_photo && (
               <img
-                src={user.cover_photo}
+                src={profileUser.cover_photo}
                 alt="cover"
                 className="w-full h-full object-cover"
               />
@@ -47,7 +70,7 @@ const Profile = () => {
 
           {/* User Info */}
           <UserProfileInfo
-            user={user}
+            user={profileUser}
             posts={posts}
             profileId={profileId}
             setShowEdit={setShowEdit}
@@ -57,16 +80,15 @@ const Profile = () => {
         {/* Tabs */}
         <div className="mt-6">
           <div className="bg-white shadow p-1 flex max-w-md mx-auto rounded-xl">
-            {["posts", "media", "likes"].map((tab) => (
+            {["posts", "media"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition
-                  ${
-                    activeTab === tab
-                      ? "bg-indigo-600 text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition ${
+                  activeTab === tab
+                    ? "bg-indigo-600 text-white"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -85,43 +107,12 @@ const Profile = () => {
               )}
             </div>
           )}
-
-          {/* Media */}
-          {activeTab === "media" && (
-            <div className="flex flex-wrap gap-4 mt-6 max-w-6xl mx-auto">
-              {posts
-                .filter((post) => post.image_urls?.length > 0)
-                .map((post) =>
-                  post.image_urls.map((image, index) => (
-                    <Link
-                      key={index}
-                      to={image}
-                      target="_blank"
-                      className="relative group"
-                    >
-                      <img
-                        src={image}
-                        alt="media"
-                        className="w-64 aspect-video object-cover rounded-lg"
-                      />
-                      <p className="absolute bottom-0 right-0 text-xs p-1 px-3 backdrop-blur-xl text-white opacity-0 group-hover:opacity-100 transition">
-                        Posted {moment(post.createdAt).fromNow()}
-                      </p>
-                    </Link>
-                  ))
-                )}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Edit Profile Modal */}
+      {/* Edit Modal */}
       {showEdit && (
-        <ProfileModal
-          user={user}
-          setUser={setUser}
-          setShowEdit={setShowEdit}
-        />
+        <ProfileModal setShowEdit={setShowEdit} />
       )}
     </div>
   );

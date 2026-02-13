@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "./features/user/userSlice";
+
 import Login from "./Pages/Login.jsx";
 import Feed from "./Pages/Feed.jsx";
 import Messages from "./Pages/Messages.jsx";
@@ -8,50 +12,35 @@ import Connections from "./Pages/Connections.jsx";
 import Discover from "./Pages/Discover.jsx";
 import Profile from "./Pages/Profile.jsx";
 import CreatePost from "./Pages/CreatePost.jsx";
-import { useAuth, useUser } from "@clerk/clerk-react";
 import Layout from "./Pages/Layout.jsx";
+
 import { Toaster } from "react-hot-toast";
-import { useEffect } from "react";
-//! backend check remove comment
-// import { useDispatch } from "react-redux";
-// import { fetchUser } from "./features/user/userSlice.js";
 
 const App = () => {
-  //!old code 
-  const { user } = useUser();
-//!cut/remove ========================================
-const { getToken } = useAuth()
+  const { user, isLoaded } = useUser();
+  const { getToken, isSignedIn } = useAuth();
+  const dispatch = useDispatch();
 
-useEffect(()=>{
-  if(user){
-    getToken().then((token)=>console.log(token))
-  }
-},[user])
-//!cut/remove ========================================
+  // 🔥 Fetch user from backend after login
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!isSignedIn) return;
 
+      const token = await getToken();
+      if (token) {
+        dispatch(fetchUser(token));
+      }
+    };
 
-//! backend check remove comment
-//! new code 
-// //   const { user, isLoaded } = useUser();
-// // if (!isLoaded) return null;
+    loadUser();
+  }, [isSignedIn, getToken, dispatch]);
 
-//   const { getToken } = useAuth();
-
-//   const dispatch = useDispatch();
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       if (user) {
-//         const token = await getToken();
-//         dispatch(fetchUser(token));
-//       }
-//     };
-//     fetchData();
-//   }, [user, getToken, dispatch]);
+  if (!isLoaded) return null;
 
   return (
     <>
       <Toaster />
+
       <Routes>
         <Route path="/" element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />

@@ -2,25 +2,29 @@ import React, { useState } from "react";
 import Sidebar from "../components/Sidebar.jsx";
 import { Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-// import { dummyUserData } from "../assets/assets.js";
 import Loading from "../components/Loading.jsx";
 import { useSelector } from "react-redux";
 
 const Layout = () => {
-  //!delete dummy data later
-  // const user = dummyUserData;
-
-  //! update code
-  const user = useSelector((state) => state.user.value);
+  const { value: user, loading } = useSelector((state) => state.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  return user ? (
-    <div className="w-full flex h-screen">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+  // 🔥 Wait until user is fully loaded
+  if (loading || !user) {
+    return <Loading />;
+  }
 
-      <div className="flex-1 bg-slate-50">
+  return (
+    <div className="w-full flex h-screen">
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+
+      <div className="flex-1 bg-slate-50 overflow-y-auto">
         <Outlet />
       </div>
+
       {sidebarOpen ? (
         <X
           className="absolute top-3 right-3 p-2 z-100 bg-white rounded-md shadow w-10 h-10 text-gray-600 sm:hidden"
@@ -33,8 +37,6 @@ const Layout = () => {
         />
       )}
     </div>
-  ) : (
-    <Loading />
   );
 };
 

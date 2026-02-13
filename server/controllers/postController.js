@@ -3,21 +3,20 @@ import imagekit from "../configs/imageKit.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 
-// import imagekit from "../configs/imageKit";
-
-//Add Post
+// Add Post
 export const addPost = async (req, res) => {
   try {
     const { userId } = req.auth();
     const { content, post_type } = req.body;
-    const images = req.files;
+    const images = req.files || [];
 
     let image_urls = [];
 
-    if (images.length) {
+    if (images.length > 0) {
       image_urls = await Promise.all(
         images.map(async (image) => {
           const fileBuffer = fs.readFileSync(image.path);
+
           const response = await imagekit.files.upload({
             file: fileBuffer,
             fileName: image.originalname,
@@ -29,19 +28,22 @@ export const addPost = async (req, res) => {
             transformation: [
               { quality: "auto" },
               { format: "webp" },
-              { width: "1280" }
-            ]
+              { width: "1280" },
+            ],
           });
+
           return url;
         })
       );
     }
+
     await Post.create({
       user: userId,
       content,
       image_urls,
       post_type,
     });
+
     res.json({ success: true, message: "Post created successfully" });
   } catch (error) {
     console.log(error);
@@ -49,14 +51,18 @@ export const addPost = async (req, res) => {
   }
 };
 
-//Get Post
+// Get Feed Posts
 export const getFeedPosts = async (req, res) => {
   try {
     const { userId } = req.auth();
     const user = await User.findById(userId);
 
-    // User Connections and followers
-    const userIds = [userId, ...user.connections, ...userfollowing];
+    const userIds = [
+      userId,
+      ...user.connections,
+      ...user.following
+    ];
+
     const posts = await Post.find({ user: { $in: userIds } })
       .populate("user")
       .sort({ created: -1 });
@@ -68,7 +74,7 @@ export const getFeedPosts = async (req, res) => {
   }
 };
 
-//Like post
+// Like / Unlike Post
 export const likePost = async (req, res) => {
   try {
     const { userId } = req.auth();
@@ -77,7 +83,9 @@ export const likePost = async (req, res) => {
     const post = await Post.findById(postId);
 
     if (post.likes_count.includes(userId)) {
-      post.likes_count = post.likes_count.filter((user) => user !== userId);
+      post.likes_count = post.likes_count.filter(
+        (user) => user.toString() !== userId
+      );
       await post.save();
       res.json({ success: true, message: "Post unliked" });
     } else {
